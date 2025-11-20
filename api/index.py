@@ -1,25 +1,45 @@
-# Vercel serverless function entry point
+# DIAGNOSTIC SCRIPT - Temporary replacement to debug Vercel environment
+from http.server import BaseHTTPRequestHandler
 import sys
 import os
 
-# Get the directory of the current file (api/)
-current_dir = os.path.dirname(os.path.abspath(__file__))
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        
+        output = []
+        output.append("--- DIAGNOSTIC INFO ---")
+        output.append(f"Python Version: {sys.version}")
+        output.append(f"Current Working Dir: {os.getcwd()}")
+        
+        output.append("\n--- FILE SYSTEM ---")
+        try:
+            # List files in current directory (api/)
+            output.append(f"Files in {os.getcwd()}: {os.listdir('.')}")
+            # List files in project root (parent)
+            parent = os.path.dirname(os.getcwd())
+            output.append(f"Files in Root ({parent}): {os.listdir(parent)}")
+            # Check if server dir exists
+            server_path = os.path.join(parent, 'server')
+            if os.path.exists(server_path):
+                output.append(f"Files in Server ({server_path}): {os.listdir(server_path)}")
+            else:
+                output.append("ERROR: 'server' directory NOT FOUND")
+        except Exception as e:
+            output.append(f"FS Error: {e}")
 
-# Get the project root (parent of api/)
-project_root = os.path.dirname(current_dir)
-
-# Get the server directory
-server_dir = os.path.join(project_root, 'server')
-
-# Add server_dir to sys.path explicitly so we can import 'app'
-if server_dir not in sys.path:
-    sys.path.insert(0, server_dir)
-
-# Change working directory to server/ so relative paths inside app.py (like templates/) work
-os.chdir(server_dir)
-
-from app import app
-
-# Vercel expects a variable named 'app', 'handler', or 'application'
-handler = app
+        output.append("\n--- DEPENDENCIES ---")
+        output.append("sys.path:")
+        for p in sys.path:
+            output.append(f"  - {p}")
+            
+        try:
+            import flask
+            output.append(f"\nSUCCESS: Flask found at {flask.__file__}")
+        except ImportError as e:
+            output.append(f"\nFAILURE: Flask Import Failed: {e}")
+            
+        self.wfile.write('\n'.join(output).encode())
 
