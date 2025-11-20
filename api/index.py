@@ -1,55 +1,40 @@
-# Vercel serverless function entry point
 import sys
 import os
 import traceback
 
 # 1. Setup Paths
-# current_dir = /var/task/api
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# project_root = /var/task
 project_root = os.path.dirname(current_dir)
-# server_dir = /var/task/server
 server_dir = os.path.join(project_root, 'server')
 
-# 2. Add server directory to sys.path so we can import 'app'
+# 2. Add server directory to sys.path
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 
-# 3. Change directory to server so relative paths (templates/static) work
+# 3. Change directory to server (critical for relative reads in Flask)
 os.chdir(server_dir)
 
-# 4. Safe Import
-try:
-    # Attempt to import the Flask app
-    from app import app
-    # If successful, expose it to Vercel
-    handler = app
-except Exception as e:
-    # If IMPORT fails (e.g. syntax error, missing env var, db crash)
-    # Capture the full traceback
-    error_trace = traceback.format_exc()
-    error_message = str(e)
+# 4. Define a specific WSGI fallback for errors
+def error_app(environ, start_response):
+    """A simple WSGI app to display startup errors."""
+    status = '500 Internal Server Error'
+    response_headers = [('Content-type', 'text/plain; charset=utf-8')]
+    start_response(status, response_headers)
     
-    # Print to Vercel Logs (visible in dashboard)
-    print(f"CRITICAL ERROR: {error_trace}")
-    print(f"Error message: {error_message}")
+    # Get the full traceback
+    error_message = traceback.format_exc()
+    
+    # Print to Vercel runtime logs as well
+    print("CRITICAL STARTUP ERROR:", file=sys.stderr)
+    print(error_message, file=sys.stderr)
+    
+    return [f"STARTUP FAILED - SEE TRACEBACK:\n\n{error_message}".encode('utf-8')]
 
-    # Create a fallback handler to show the error in the browser
-    from http.server import BaseHTTPRequestHandler
-    
-    # Store error in module-level variable so handler can access it
-    _error_info = f"STARTUP FAILED:\n\nError: {error_message}\n\nTraceback:\n{error_trace}"
-    
-    class ErrorHandler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(500)
-            self.send_header('Content-type', 'text/plain')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(_error_info.encode('utf-8'))
-        
-        def do_POST(self):
-            self.do_GET()
-    
-    handler = ErrorHandler
+# 5. Attempt to import the real app
+try:
+    from app import app as flask_app
+    handler = flask_app
+except Exception:
+    # If app fails to import (syntax error, missing dep, etc.), serve the error text
+    handler = error_app
 
