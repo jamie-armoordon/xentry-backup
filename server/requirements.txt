@@ -1,0 +1,4 @@
+Flask
+APScheduler
+flask-cors
+gunicorn

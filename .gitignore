@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Client specific
+.client_id
+.star_config.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Server data (should use external storage on Vercel)
+server/uploads/
+server/clients.json
+server/settings.json
+/data/
+
+# Build artifacts
+*.exe
+*.spec
+build/
+

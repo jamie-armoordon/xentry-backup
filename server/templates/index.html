@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Updated title from Xentry to XentryPrints -->
+    <title>XentryPrints Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Added modern header with navigation and status indicators -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <!-- Updated logo icon from X to XP for XentryPrints -->
+                    <div class="logo-icon">XP</div>
+                    <!-- Updated logo text from Xentry to XentryPrints -->
+                    <span class="logo-text">XentryPrints</span>
+                </div>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-page="dashboard">Dashboard</button>
+                    <button class="nav-tab" data-page="analytics">Analytics</button>
+                    <button class="nav-tab" data-page="settings">Settings</button>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <div class="status-dot online"></div>
+                    <span>System Online</span>
+                </div>
+                <div class="user-avatar">
+                    <div class="avatar-circle">A</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <div id="page-dashboard" class="page-content">
+            <!-- Stats Overview Section -->
+            <section class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-icon clients-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-clients">0</div>
+                        <div class="stat-label">Connected Clients</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon files-icon">📁</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-files">0</div>
+                        <div class="stat-label">Stored Files</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon storage-icon">💾</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-storage">0 MB</div>
+                        <div class="stat-label">Storage Used</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon activity-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-value">Active</div>
+                        <div class="stat-label">System Status</div>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="dashboard-grid">
+                <section class="clients-panel">
+                    <div class="panel-header">
+                        <h2>Connected Clients</h2>
+                        <div class="panel-actions">
+                            <button class="refresh-btn" onclick="fetchAndRender()">
+                                <span class="refresh-icon">🔄</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div id="client-list" class="client-grid">
+                            <!-- Client data will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </section>
+
+                <section class="files-panel">
+                    <div class="panel-header">
+                        <h2>File Storage</h2>
+                        <div class="panel-actions">
+                            <div class="search-box">
+                                <input type="text" placeholder="Search files..." id="file-search">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div id="file-groups" class="file-groups">
+                            <!-- File groups will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="page-analytics" class="page-content" style="display: none;">
+            <!-- Analytics content will be loaded here -->
+        </div>
+
+        <div id="page-settings" class="page-content" style="display: none;">
+            <!-- Settings content will be loaded here -->
+        </div>
+    </main>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdf-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-file-name"></h3>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdf-viewer" src="" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Added footer with Jamie Armoordon credit -->
+    <footer class="dashboard-footer">
+        <div class="footer-content">
+            <p>Made by Jamie Armoordon</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <!-- Add Chart.js for analytics visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+Using the Startup Folder
+Press Win + R, type shell:startup, and hit Enter to open the Startup folder for the current user.
+
+Place a shortcut of your EXE file in this folder.
+
+The program will launch automatically at every user sign-in with standard permissions.
+
+Using the Registry for User-Level Startup
+Open regedit (no admin needed for HKCU).
+
+Navigate to HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run.
+
+Add a new string value with the path to your EXE.
+
+The program will start on user login, without admin rights.
