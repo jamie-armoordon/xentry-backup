@@ -2,25 +2,24 @@
 import sys
 import os
 
-# Get the directory containing this file
+# Get the directory of the current file (api/)
 current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Get the project root (parent of api/)
 project_root = os.path.dirname(current_dir)
+
 # Get the server directory
 server_dir = os.path.join(project_root, 'server')
 
-# Add both to path
-for path in [server_dir, project_root]:
-    if path not in sys.path:
-        sys.path.insert(0, path)
+# Add server_dir to sys.path explicitly so we can import 'app'
+if server_dir not in sys.path:
+    sys.path.insert(0, server_dir)
 
-# Change to server directory for relative imports
+# Change working directory to server/ so relative paths inside app.py (like templates/) work
 os.chdir(server_dir)
 
-# Now import the app
 from app import app
 
-# Export the Flask app for Vercel
-# Vercel expects a 'handler' variable for Python functions
+# Vercel expects a variable named 'app', 'handler', or 'application'
 handler = app
 
