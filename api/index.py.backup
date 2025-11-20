@@ -2,11 +2,12 @@
 import sys
 import os
 
-# Get the directory of the current file (api/)
-current_dir = os.path.dirname(os.path.abspath(__file__))
+# In Vercel, the working directory is /var/task (project root)
+# The api/ directory is at /var/task/api
+# The server/ directory is at /var/task/server
 
-# Get the project root (parent of api/)
-project_root = os.path.dirname(current_dir)
+# Get the project root (/var/task)
+project_root = os.getcwd()  # Vercel sets CWD to /var/task
 
 # Get the server directory
 server_dir = os.path.join(project_root, 'server')
