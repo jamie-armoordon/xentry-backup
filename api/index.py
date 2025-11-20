@@ -1,26 +1,44 @@
 # Vercel serverless function entry point
 import sys
 import os
+import traceback
 
-# In Vercel, the working directory is /var/task (project root)
-# The api/ directory is at /var/task/api
-# The server/ directory is at /var/task/server
-
-# Get the project root (/var/task)
-project_root = os.getcwd()  # Vercel sets CWD to /var/task
-
-# Get the server directory
+# 1. Setup Paths
+# current_dir = /var/task/api
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# project_root = /var/task
+project_root = os.path.dirname(current_dir)
+# server_dir = /var/task/server
 server_dir = os.path.join(project_root, 'server')
 
-# Add server_dir to sys.path explicitly so we can import 'app'
+# 2. Add server directory to sys.path so we can import 'app'
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 
-# Change working directory to server/ so relative paths inside app.py (like templates/) work
+# 3. Change directory to server so relative paths (templates/static) work
 os.chdir(server_dir)
 
-from app import app
+# 4. Safe Import
+try:
+    # Attempt to import the Flask app
+    from app import app
+    # If successful, expose it to Vercel
+    handler = app
+except Exception as e:
+    # If IMPORT fails (e.g. syntax error, missing env var, db crash)
+    # Capture the full traceback
+    error_trace = traceback.format_exc()
+    print(f"CRITICAL ERROR: {error_trace}")  # Print to Vercel Logs
 
-# Vercel expects a variable named 'app', 'handler', or 'application'
-handler = app
+    # Create a fallback handler to show the error in the browser
+    from http.server import BaseHTTPRequestHandler
+    
+    class ErrorHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(500)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(f"STARTUP FAILED:\n\n{error_trace}".encode('utf-8'))
+    
+    handler = ErrorHandler
 
