@@ -526,3 +526,7 @@ if __name__ == '__main__':
         scheduler.start()
 
     app.run(host='0.0.0.0', port=5000, debug=True)
+else:
+    # When imported by Vercel (not run directly), don't start the scheduler
+    # Vercel will handle the app through the handler in api/index.py
+    pass
