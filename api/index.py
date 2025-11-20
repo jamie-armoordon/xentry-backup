@@ -14,27 +14,41 @@ if server_dir not in sys.path:
 # 3. Change directory to server (critical for relative reads in Flask)
 os.chdir(server_dir)
 
-# 4. Define a specific WSGI fallback for errors
-def error_app(environ, start_response):
-    """A simple WSGI app to display startup errors."""
-    status = '500 Internal Server Error'
-    response_headers = [('Content-type', 'text/plain; charset=utf-8')]
-    start_response(status, response_headers)
-    
-    # Get the full traceback
-    error_message = traceback.format_exc()
-    
-    # Print to Vercel runtime logs as well
-    print("CRITICAL STARTUP ERROR:", file=sys.stderr)
-    print(error_message, file=sys.stderr)
-    
-    return [f"STARTUP FAILED - SEE TRACEBACK:\n\n{error_message}".encode('utf-8')]
+# Global state to store the app or error
+real_app = None
+startup_error = None
 
-# 5. Attempt to import the real app
-try:
-    from app import app as flask_app
-    handler = flask_app
-except Exception:
-    # If app fails to import (syntax error, missing dep, etc.), serve the error text
-    handler = error_app
+def handler(environ, start_response):
+    """
+    Vercel Serverless Handler.
+    Lazily imports the Flask app on the first request to catch startup errors.
+    """
+    global real_app, startup_error
+
+    # Case 1: App is already loaded, pass the request to Flask
+    if real_app:
+        return real_app(environ, start_response)
+
+    # Case 2: App previously failed to load, show the cached error
+    if startup_error:
+        return show_error(start_response, startup_error)
+
+    # Case 3: First request - try to import the app
+    try:
+        # Import Flask here so we catch ImportError/SyntaxError/etc
+        from app import app as flask_app
+        real_app = flask_app
+        return real_app(environ, start_response)
+    except BaseException:
+        # Catch EVERYTHING (including SystemExit)
+        startup_error = traceback.format_exc()
+        # Log to Vercel console
+        print(f"CRITICAL FAILURE: {startup_error}", file=sys.stderr)
+        return show_error(start_response, startup_error)
+
+def show_error(start_response, error_text):
+    status = '500 Internal Server Error'
+    headers = [('Content-type', 'text/plain; charset=utf-8')]
+    start_response(status, headers)
+    return [f"----------------------------------------\nAPP STARTUP FAILED\n----------------------------------------\n\n{error_text}".encode('utf-8')]
 
