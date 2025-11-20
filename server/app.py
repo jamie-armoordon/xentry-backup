@@ -9,16 +9,12 @@ import logging
 
 # Try to import blob storage (optional)
 try:
-    # Try relative import first (when in server directory)
-    try:
-        from .blob_storage import put_blob, get_blob, delete_blob, list_blobs
-    except (ImportError, ValueError):
-        # Fallback to absolute import
-        from blob_storage import put_blob, get_blob, delete_blob, list_blobs
+    # In Vercel, we're in server/ directory, so direct import should work
+    from blob_storage import put_blob, get_blob, delete_blob, list_blobs
     BLOB_STORAGE_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     BLOB_STORAGE_AVAILABLE = False
-    logging.warning("Blob storage module not available, using local storage only")
+    logging.warning(f"Blob storage module not available: {e}. Using local storage only.")
 
 app = Flask(__name__)
 
