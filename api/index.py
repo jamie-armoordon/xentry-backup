@@ -15,12 +15,16 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 server_dir = os.path.join(project_root, 'server')
 
-# 2. Add server directory to sys.path
-if server_dir not in sys.path:
+# 2. Add server directory to sys.path (if it exists)
+if os.path.exists(server_dir) and server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 
-# 3. Change directory to server
-os.chdir(server_dir)
+# 3. Change directory to server (only if it exists)
+if os.path.exists(server_dir):
+    os.chdir(server_dir)
+else:
+    # Server dir doesn't exist - stay in current directory
+    pass
 
 if FLASK_AVAILABLE:
     # 4. Create a "Sandbox" Flask app (This ensures Vercel starts successfully)
