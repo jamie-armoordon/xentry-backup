@@ -517,6 +517,28 @@ def too_large(e):
         "message": "File size exceeds the 5GB limit. Please compress or split the file."
     }), 413
 
+@app.route('/api/test-blob', methods=['GET'])
+def test_blob():
+    """Test endpoint to verify blob storage connection."""
+    blob_status = {
+        "blob_storage_available": BLOB_STORAGE_AVAILABLE,
+        "blob_token_set": os.environ.get('BLOB_READ_WRITE_TOKEN') is not None,
+        "use_blob_storage": USE_BLOB_STORAGE,
+        "storage_type": "Vercel Blob Storage" if USE_BLOB_STORAGE else "Local filesystem (ephemeral)"
+    }
+    
+    # Try a simple blob operation if available
+    if USE_BLOB_STORAGE:
+        try:
+            test_result = list_blobs('test/')
+            blob_status["test_list_success"] = True
+            blob_status["test_blobs_found"] = len(test_result) if test_result else 0
+        except Exception as e:
+            blob_status["test_list_success"] = False
+            blob_status["test_error"] = str(e)
+    
+    return jsonify(blob_status)
+
 if __name__ == '__main__':
     # Scheduler for daily cleanup (only in non-serverless environments)
     # For Vercel, use Vercel Cron Jobs instead
