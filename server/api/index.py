@@ -11,20 +11,17 @@ except ImportError as e:
     FLASK_ERROR = str(e)
 
 # 1. Setup Paths
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-server_dir = os.path.join(project_root, 'server')
+# api/index.py is now at server/api/index.py
+# So server directory is the parent of api/
+current_dir = os.path.dirname(os.path.abspath(__file__))  # server/api/
+server_dir = os.path.dirname(current_dir)  # server/ (parent of api/)
 
-# 2. Add server directory to sys.path (if it exists)
-if os.path.exists(server_dir) and server_dir not in sys.path:
+# 2. Add server directory to sys.path so we can import app.py
+if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 
-# 3. Change directory to server (only if it exists)
-if os.path.exists(server_dir):
-    os.chdir(server_dir)
-else:
-    # Server dir doesn't exist - stay in current directory
-    pass
+# 3. Change directory to server so relative paths (templates/static) work
+os.chdir(server_dir)
 
 if FLASK_AVAILABLE:
     # 4. Create a "Sandbox" Flask app (This ensures Vercel starts successfully)
@@ -47,8 +44,8 @@ if FLASK_AVAILABLE:
         ANY error (syntax, missing env var, crash) into a string.
         """
         try:
-            # Try to import the app module
-            import app as user_app
+            # Try to import the app module (app.py is in server/ directory)
+            from app import app as user_app
             return f"SUCCESS! App imported correctly.\n\nApp type: {type(user_app)}\nApp: {user_app}"
         except SystemExit as e:
             # Catch app.run() or sys.exit() calls

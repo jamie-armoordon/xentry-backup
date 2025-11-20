@@ -1,4 +1,0 @@
-requests
-watchdog
-pystray
-pillow
