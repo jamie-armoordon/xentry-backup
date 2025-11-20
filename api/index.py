@@ -28,17 +28,28 @@ except Exception as e:
     # If IMPORT fails (e.g. syntax error, missing env var, db crash)
     # Capture the full traceback
     error_trace = traceback.format_exc()
-    print(f"CRITICAL ERROR: {error_trace}")  # Print to Vercel Logs
+    error_message = str(e)
+    
+    # Print to Vercel Logs (visible in dashboard)
+    print(f"CRITICAL ERROR: {error_trace}")
+    print(f"Error message: {error_message}")
 
     # Create a fallback handler to show the error in the browser
     from http.server import BaseHTTPRequestHandler
+    
+    # Store error in module-level variable so handler can access it
+    _error_info = f"STARTUP FAILED:\n\nError: {error_message}\n\nTraceback:\n{error_trace}"
     
     class ErrorHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             self.send_response(500)
             self.send_header('Content-type', 'text/plain')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(f"STARTUP FAILED:\n\n{error_trace}".encode('utf-8'))
+            self.wfile.write(_error_info.encode('utf-8'))
+        
+        def do_POST(self):
+            self.do_GET()
     
     handler = ErrorHandler
 
