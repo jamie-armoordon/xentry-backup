@@ -12,9 +12,15 @@ try:
     # In Vercel, we're in server/ directory, so direct import should work
     from blob_storage import put_blob, get_blob, delete_blob, list_blobs
     BLOB_STORAGE_AVAILABLE = True
+    logging.info("Blob storage module loaded successfully")
 except ImportError as e:
     BLOB_STORAGE_AVAILABLE = False
     logging.warning(f"Blob storage module not available: {e}. Using local storage only.")
+    logging.warning(f"Import error details: {type(e).__name__}: {str(e)}")
+except Exception as e:
+    BLOB_STORAGE_AVAILABLE = False
+    logging.error(f"Unexpected error loading blob storage: {e}")
+    logging.error(f"Error type: {type(e).__name__}")
 
 app = Flask(__name__)
 
@@ -516,12 +522,25 @@ def too_large(e):
 @app.route('/api/test-blob', methods=['GET'])
 def test_blob():
     """Test endpoint to verify blob storage connection."""
+    import traceback
+    
     blob_status = {
         "blob_storage_available": BLOB_STORAGE_AVAILABLE,
         "blob_token_set": os.environ.get('BLOB_READ_WRITE_TOKEN') is not None,
         "use_blob_storage": USE_BLOB_STORAGE,
         "storage_type": "Vercel Blob Storage" if USE_BLOB_STORAGE else "Local filesystem (ephemeral)"
     }
+    
+    # Try to import blob_storage to see the actual error
+    if not BLOB_STORAGE_AVAILABLE:
+        try:
+            import blob_storage
+            blob_status["import_test"] = "Module exists but import failed earlier"
+        except ImportError as e:
+            blob_status["import_error"] = f"{type(e).__name__}: {str(e)}"
+            blob_status["import_traceback"] = traceback.format_exc().split('\n')[-5:]  # Last 5 lines
+        except Exception as e:
+            blob_status["import_error"] = f"{type(e).__name__}: {str(e)}"
     
     # Try a simple blob operation if available
     if USE_BLOB_STORAGE:
@@ -532,6 +551,7 @@ def test_blob():
         except Exception as e:
             blob_status["test_list_success"] = False
             blob_status["test_error"] = str(e)
+            blob_status["test_traceback"] = traceback.format_exc().split('\n')[-5:]
     
     return jsonify(blob_status)
 
