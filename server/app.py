@@ -9,7 +9,12 @@ import logging
 
 # Try to import blob storage (optional)
 try:
-    from blob_storage import put_blob, get_blob, delete_blob, list_blobs
+    # Try relative import first (when in server directory)
+    try:
+        from .blob_storage import put_blob, get_blob, delete_blob, list_blobs
+    except (ImportError, ValueError):
+        # Fallback to absolute import
+        from blob_storage import put_blob, get_blob, delete_blob, list_blobs
     BLOB_STORAGE_AVAILABLE = True
 except ImportError:
     BLOB_STORAGE_AVAILABLE = False
